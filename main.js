@@ -6,9 +6,9 @@ const addUserForm = forms[0];
 
 // Add and event listener to the form to displays to the console when the submit
 // button is clicked
-addUserForm.addEventListener("submit", e => {
-  e.preventDefault();
-  console.log(e);
+addUserForm.addEventListener("submit", event => {
+  event.preventDefault();
+  console.log(event);
 });
 
 // Add a second event listener to get the email and password of the form inputs
