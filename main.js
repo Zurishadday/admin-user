@@ -1,40 +1,102 @@
-// Store the references to all the forms in the document
-const forms = document.getElementsByTagName("form");
-
 // Reference the first (and currently only) form
-const addUserForm = forms[0];
+const [addUserForm] = document.getElementsByTagName("form");
 
-// Add and event listener to the form to displays to the console when the submit
-// button is clicked
-addUserForm.addEventListener("submit", event => {
-  event.preventDefault();
-  console.log(event);
-});
+// Reference to the inputs
+const {
+  email: emailRef,
+  "email-verification": emailVerificationRef,
+  password: passwordRef
+} = addUserForm.elements;
 
-// Add a second event listener to get the email and password of the form inputs
-// THIS IS A BAD PRACTICE, USE ONLY ONE Event Listener by type
+// Event listeners
 addUserForm.addEventListener("submit", e => {
   e.preventDefault();
-  const emailRef = addUserForm.elements["email"];
-  const passwordRef = addUserForm.elements["password"];
 
-  const email = emailRef.value;
-  const password = passwordRef.value;
-
-  // Make some validations to actually send the data to the server
-  addUserForm.classList.add("was-validated");
-
-  if (email === "") {
-    console.error("email cant't be empty");
+  if (!emailRef.classList.contains("is-valid")) {
     return
   }
 
-  if (password === "") {
-    console.error("password cant't be empty");
+  if (!emailVerificationRef.classList.contains("is-valid")) {
+    return
+  }
+
+  if (!passwordRef.classList.contains("is-valid")) {
     return
   }
 
   // Form is valid, we can do wherever the form is meant to do
-  console.log(email, password);
-  alert(`${email}:${password}`);
+  console.log(email.value, password.value);
+  alert(`${email.value}:${password.value}`);
 });
+
+emailRef.addEventListener("focusout", e => {
+  const email = emailRef.value;
+
+  if (email === "") {
+    feedback(emailRef, {message: "email can't be empty", valid: false});
+    return
+  }
+
+  if (!validEmail(email)) {
+    feedback(emailRef, {message: "email looks invalid", valid: false});
+    return
+  }
+
+  feedback(emailRef, {valid: true});
+});
+
+emailVerificationRef.addEventListener("focusout", e => {
+  const email = emailRef.value;
+  const emailVerification = emailVerificationRef.value;
+
+  if (emailVerification === "") {
+    feedback(emailVerificationRef, {message: "email can't be empty", valid: false});
+    return
+  }
+
+  if (!validEmail(emailVerification)) {
+    feedback(emailVerificationRef, {message: "email looks invalid", valid: false});
+    return
+  }
+
+  if (email !== emailVerification) {
+    feedback(emailVerificationRef, {message: "email is not the same", valid: false});
+    return
+  }
+
+  feedback(emailVerificationRef, {valid: true});
+});
+
+passwordRef.addEventListener("focusout", e => {
+  const password = passwordRef.value;
+
+  if (password.length < 5) {
+    feedback(passwordRef, {message: "password must be at least 5 characters", valid: false});
+    return
+  }
+
+  feedback(passwordRef, {valid: true});
+});
+
+// addMessage: accepts the classname and message to display the message
+const addMessage = (classname, message) => `<div class="${classname}">${message}</div>`;
+
+// validEmail: validates the email in a very basic form
+const validEmail = email => /\S+@\S+\.\S+/.test(email);
+
+// feedback: adds a message to the input to provide feedback to the user
+const feedback = (element, {message, valid}) => {
+  element.classList.remove("is-valid", "is-invalid");
+  const sibling = element.nextElementSibling;
+  if (sibling) {
+    element.parentNode.removeChild(sibling);
+  }
+
+  const inputClassName = valid ? "is-valid" : "is-invalid";
+  const messageClassName = valid ? "valid-feedback" : "invalid-feedback";
+
+  element.classList.add(inputClassName);
+  message
+    ? element.insertAdjacentHTML("afterend", addMessage(messageClassName, message))
+    : null;
+};
